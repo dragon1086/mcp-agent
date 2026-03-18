@@ -277,9 +277,18 @@ class OpenAIAugmentedLLM(
                         # DEPRECATED: https://platform.openai.com/docs/api-reference/chat/create#chat-create-max_tokens
                         # "max_tokens": params.maxTokens,
                         "max_completion_tokens": params.maxTokens,
-                        "reasoning_effort": params.reasoning_effort
-                        or self._reasoning_effort,
                     }
+                    # gpt-5.4+ models do not support reasoning_effort with function
+                    # tools on /v1/chat/completions (400 error). Skip the parameter
+                    # when tools are present for these models.
+                    if not (
+                        available_tools
+                        and model
+                        and model.startswith("gpt-5.4")
+                    ):
+                        arguments["reasoning_effort"] = (
+                            params.reasoning_effort or self._reasoning_effort
+                        )
                 else:
                     arguments = {**arguments, "max_tokens": params.maxTokens}
                     # if available_tools:
@@ -559,6 +568,9 @@ class OpenAIAugmentedLLM(
                 # DEPRECATED: https://platform.openai.com/docs/api-reference/chat/create#chat-create-max_tokens
                 # "max_tokens": params.maxTokens,
                 payload["max_completion_tokens"] = params.maxTokens
+                # gpt-5.4+ models do not support reasoning_effort with function
+                # tools on /v1/chat/completions (400 error). generate_structured
+                # does not use function tools, so always include reasoning_effort.
                 payload["reasoning_effort"] = (
                     params.reasoning_effort or self._reasoning_effort
                 )
