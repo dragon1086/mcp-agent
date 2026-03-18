@@ -21,6 +21,13 @@ from mcp_agent.workflows.llm.augmented_llm_openai import (
 )
 
 
+# OpenAIAugmentedLLM does not implement the generate_stream abstract method yet,
+# so we need a concrete subclass for testing.
+class _TestableOpenAIAugmentedLLM(OpenAIAugmentedLLM):
+    async def generate_stream(self, message, request_params=None):
+        raise NotImplementedError("streaming not implemented")
+
+
 class TestOpenAIAugmentedLLM:
     """
     Tests for the OpenAIAugmentedLLM class.
@@ -41,7 +48,7 @@ class TestOpenAIAugmentedLLM:
         )
 
         # Create LLM instance
-        llm = OpenAIAugmentedLLM(name="test", context=mock_context)
+        llm = _TestableOpenAIAugmentedLLM(name="test", context=mock_context)
 
         # Apply common mocks
         llm.history = MagicMock()
