@@ -1,7 +1,7 @@
 import json
 import re
 import functools
-from typing import Any, Dict, Iterable, List, Type, cast
+from typing import Any, AsyncIterator, Dict, Iterable, List, Type, cast
 
 from pydantic import BaseModel
 
@@ -68,6 +68,7 @@ from mcp_agent.workflows.llm.augmented_llm import (
     ProviderToMCPConverter,
     RequestParams,
 )
+from mcp_agent.workflows.llm.streaming_events import StreamEvent
 from mcp_agent.logging.logger import get_logger
 from mcp_agent.workflows.llm.multipart_converter_openai import OpenAIConverter
 from mcp_agent.executor.errors import to_application_error
@@ -181,6 +182,15 @@ class OpenAIAugmentedLLM(
             assistant_message_params["tool_calls"] = message.tool_calls
 
         return ChatCompletionAssistantMessageParam(**assistant_message_params)
+
+    async def generate_stream(
+        self,
+        message,
+        request_params: RequestParams | None = None,
+    ) -> AsyncIterator[StreamEvent]:
+        """Streaming is not yet implemented for OpenAI."""
+        raise NotImplementedError("Streaming not yet implemented for OpenAI provider")
+        yield  # Make this a generator function  # noqa: E501
 
     @track_tokens()
     async def generate(
